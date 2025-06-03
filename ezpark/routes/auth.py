@@ -47,7 +47,7 @@ def register():
         return jsonify({"msg": "User created successfully", "user_id": new_user.id}), 201
     
     except Exception as e:
-        return jsonify({"msg": "Something went wrong, Please try again."}), 500
+        return jsonify({"msg": f"Something went wrong, Please try again.: {e}"}), 500
 
 @bp.route('/login', methods=['POST'])
 def login():
