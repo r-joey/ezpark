@@ -6,7 +6,7 @@ import uuid
 class User(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = db.Column(db.String(120), unique=True, nullable=False)
-    name = db.Column(db.String(80), unique=True, nullable=False)
+    name = db.Column(db.String(80), nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(20), default='user', nullable=False)
 
@@ -22,6 +22,7 @@ class User(db.Model):
         return {
             'id': self.id,
             'name': self.name,
+            'email': self.email,
             'role': self.role
         }
 
@@ -38,6 +39,8 @@ class Location(db.Model):
         return {
             'id': self.id,
             'name': self.name,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
             'address': self.address
         }
 
@@ -70,7 +73,7 @@ class Reservation(db.Model):
             'id': self.id,
             'slot_id': self.slot_id,
             'user_id': self.user_id,
-            'reservation_time': self.reservation_time.isoformat(),
+            'start_time': self.start_time.isoformat(),
             'end_time': self.end_time.isoformat() if self.end_time else None,
             'status': self.status
         }
