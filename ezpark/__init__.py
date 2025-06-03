@@ -11,9 +11,8 @@ load_dotenv()
 def create_app():
     app = Flask(__name__)
 
-    environment = os.environ.get('ENVIRONMENT', 'development')
+    environment = os.environ.get('FLASk_ENV', 'development')
     app.config.from_object(config_by_name[environment])
-
 
     # Initialize extensions
     socketio.init_app(app, cors_allowed_origins="*")
