@@ -11,7 +11,7 @@ load_dotenv()
 def create_app():
     app = Flask(__name__)
 
-    environment = os.environ.get('FLASk_ENV', 'development')
+    environment = os.environ.get('FLASK_ENV', 'development')
     app.config.from_object(config_by_name[environment])
 
     # Initialize extensions

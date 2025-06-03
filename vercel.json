@@ -2,15 +2,19 @@
   "version": 2,
   "builds": [
     {
-      "src": "ezpark/__init__.py",
+      "src": "run.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "ezpark/__init__.py"
+      "dest": "run.py"
     }
-  ]
+  ],
+  "env": {
+    "FLASK_ENV": "production",
+    "FLASK_APP": "run.py"
+  }
 }
 
