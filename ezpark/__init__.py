@@ -1,13 +1,19 @@
 from flask import Flask, request 
-from .config import Config
+from .config import config_by_name
 from .extensions import db, jwt, socketio, cors, migrate 
 from .models import User
 from .routes import auth, locations, slots, reservations 
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object(Config)
+
+    environment = os.environ.get('ENVIRONMENT', 'development')
+    app.config.from_object(config_by_name[environment])
+
 
     # Initialize extensions
     socketio.init_app(app, cors_allowed_origins="*")
