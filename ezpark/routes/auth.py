@@ -61,7 +61,7 @@ def login():
 
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
-            access_token = create_access_token(identity=user)
+            access_token = create_access_token(identity=user, additional_claims={"role": user.role})
             return jsonify(access_token=access_token, user_id=user.id, user_role=user.role), 200
         else:
             return jsonify({"msg": "Bad username or password"}), 401
