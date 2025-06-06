@@ -13,6 +13,7 @@ def add_slot():
     data = request.get_json()
     location_id = data.get('location_id')
     name = data.get('name')
+    is_available = data.get('is_available')
 
     if not location_id or not name:
         return jsonify({"msg": "Missing location_id or name"}), 400
@@ -24,7 +25,7 @@ def add_slot():
     if Slot.query.filter_by(location_id=location_id, name=name).first():
         return jsonify({"msg": f"Slot '{name}' already exists at this location"}), 409
 
-    new_slot = Slot(location_id=location_id, name=name, is_available=True)
+    new_slot = Slot(location_id=location_id, name=name, is_available=is_available)
     db.session.add(new_slot)
     db.session.commit()
     return jsonify({"msg": "Slot added successfully", "slot": new_slot.to_dict()}), 201

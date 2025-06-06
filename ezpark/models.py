@@ -79,7 +79,9 @@ class Reservation(db.Model):
         return {
             'id': self.id,
             'slot_id': self.slot_id,
+            'slot_name': self.slot.name,
             'user_id': self.user_id,
+            'user_email': self.user.email,
             'start_time': self.start_time.isoformat(),
             'end_time': self.end_time.isoformat() if self.end_time else None,
             'status': self.status
