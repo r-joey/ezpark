@@ -29,8 +29,7 @@ def register():
     try:
         data = request.get_json() 
         email = data.get('email')
-        password = data.get('password')
-        role = data.get('role', 'user')
+        password = data.get('password') 
 
         if not email or not password:
             return jsonify({"msg": "Missing username or password"}), 400
@@ -38,7 +37,7 @@ def register():
         if User.query.filter_by(email=email).first():
             return jsonify({"msg": "User already exists"}), 409
 
-        new_user = User(email=email, role=role)
+        new_user = User(email=email)
         new_user.set_password(password)
 
         db.session.add(new_user)
