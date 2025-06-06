@@ -106,3 +106,33 @@ def cancel_reservation(reservation_id):
             return jsonify({"msg": "Unauthorized to cancel this reservation"}), 403
     except Exception as e:
         return jsonify({"msg": "Something went wrong, Please try again."}), 500
+
+@bp.route('/<int:reservation_id>/complete', methods=['PUT'])
+@jwt_required()
+def complete_reservation(reservation_id):
+    try:
+        current_user_id = get_jwt_identity()
+        current_user = User.query.get(current_user_id)
+
+        reservation = Reservation.query.get(reservation_id)
+        if not reservation:
+            return jsonify({"msg": "Reservation not found"}), 404
+
+        if current_user.role == 'admin' or reservation.user_id == current_user_id:
+            if reservation.status == 'completed':
+                return jsonify({"msg": "Reservation is already completed"}), 400
+
+            reservation.status = 'completed'
+            db.session.commit()
+
+            slot = Slot.query.get(reservation.slot_id)
+            if slot and not slot.is_available:
+                slot.is_available = True
+                db.session.commit()
+                socketio.emit('slot_status_update', slot.to_dict())
+
+            return jsonify({"msg": "Reservation completed successfully", "reservation": reservation.to_dict()}), 200
+        else:
+            return jsonify({"msg": "Unauthorized to complete this reservation"}), 403
+    except Exception as e:
+        return jsonify({"msg": "Something went wrong, Please try again."}), 500
