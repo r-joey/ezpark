@@ -79,8 +79,7 @@ def update_profile():
 
         data = request.get_json()
         user.first_name = data.get('first_name', user.first_name)
-        user.last_name = data.get('last_name', user.last_name)
-        user.email = data.get('email', user.email)
+        user.last_name = data.get('last_name', user.last_name) 
 
         db.session.commit()
         return jsonify({"msg": "Profile updated", "user": user.to_dict()}), 200
@@ -111,16 +110,16 @@ def update_password():
         db.session.commit()
         return jsonify({"msg": "Password updated successfully"}), 200
     except Exception as e:
-        return jsonify({"msg": f"Something went wrong: {e}"}), 500
+        return jsonify({"msg": f"Something went wrong: {e}, Please try again."}), 500
 
 @bp.route('/users', methods=['GET'])
 @admin_required()
 def get_users():
     try:
-        users = User.query.all()
+        users = User.query.filter(User.role != 'admin').all()
         return jsonify([user.to_dict() for user in users]), 200
     except Exception as e:
-        return jsonify({"msg": "Something went wrong, Please try again."}), 500
+        return jsonify({"msg": f"Something went wrong: {e}"}), 500
 
 @bp.route('/users/<user_id>', methods=['DELETE'])
 @admin_required()
@@ -142,5 +141,19 @@ def deactivate_user(user_id):
         db.session.commit()
 
         return jsonify({"msg": "User deactivated successfully", "user": user.to_dict()}), 200
+    except Exception as e:
+        return jsonify({"msg": f"Something went wrong: {e}"}), 500
+
+@bp.route('/me', methods=['GET'])
+@jwt_required()
+def get_current_user():
+    try:
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+
+        if not user:
+            return jsonify({"msg": "User not found"}), 404
+
+        return jsonify(user.to_dict()), 200
     except Exception as e:
         return jsonify({"msg": f"Something went wrong: {e}"}), 500
