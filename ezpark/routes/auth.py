@@ -27,19 +27,18 @@ def admin_required():
 @bp.route('/register', methods=['POST'])
 def register():
     try:
-        data = request.get_json()
-        name = data.get('name')
+        data = request.get_json() 
         email = data.get('email')
         password = data.get('password')
         role = data.get('role', 'user')
 
-        if not name or not password:
+        if not email or not password:
             return jsonify({"msg": "Missing username or password"}), 400
 
-        if User.query.filter_by(name=name).first():
+        if User.query.filter_by(email=email).first():
             return jsonify({"msg": "User already exists"}), 409
 
-        new_user = User(name=name, email=email, role=role)
+        new_user = User(email=email, role=role)
         new_user.set_password(password)
 
         db.session.add(new_user)
@@ -67,6 +66,52 @@ def login():
             return jsonify({"msg": "Bad username or password"}), 401
     except Exception as e:
         return jsonify({"msg": "Something went wrong, Please try again."}), 500
+
+@bp.route('/profile', methods=['PUT'])
+@jwt_required()
+def update_profile():
+    try:
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+
+        if not user:
+            return jsonify({"msg": "User not found"}), 404
+
+        data = request.get_json()
+        user.first_name = data.get('first_name', user.first_name)
+        user.last_name = data.get('last_name', user.last_name)
+        user.email = data.get('email', user.email)
+
+        db.session.commit()
+        return jsonify({"msg": "Profile updated", "user": user.to_dict()}), 200
+    except Exception as e:
+        return jsonify({"msg": f"Something went wrong: {e}"}), 500
+
+@bp.route('/profile/password', methods=['PUT'])
+@jwt_required()
+def update_password():
+    try:
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+
+        if not user:
+            return jsonify({"msg": "User not found"}), 404
+
+        data = request.get_json()
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+
+        if not new_password:
+            return jsonify({"msg": "New password is required"}), 400
+
+        if not user.check_password(old_password):
+            return jsonify({"msg": "Old password is incorrect"}), 400
+
+        user.set_password(new_password)
+        db.session.commit()
+        return jsonify({"msg": "Password updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"msg": f"Something went wrong: {e}"}), 500
 
 @bp.route('/users', methods=['GET'])
 @admin_required()

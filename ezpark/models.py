@@ -7,7 +7,8 @@ class User(db.Model):
     __tablename__ = 'users'  
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = db.Column(db.String(128), unique=True, nullable=False)
-    name = db.Column(db.String(128), nullable=False)
+    first_name = db.Column(db.String(128), nullable=True)  # renamed and made nullable
+    last_name = db.Column(db.String(128), nullable=True)   # new field
     password_hash = db.Column(db.String(512), nullable=False)
     role = db.Column(db.String(20), default='user', nullable=False)
 
@@ -22,8 +23,9 @@ class User(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
-            'name': self.name,
             'email': self.email,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
             'role': self.role
         }
 
@@ -43,6 +45,7 @@ class Location(db.Model):
             'name': self.name,
             'latitude': self.latitude,
             'longitude': self.longitude,
+            'total_slots': len(self.slots),
             'address': self.address
         }
 

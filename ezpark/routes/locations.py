@@ -48,3 +48,16 @@ def get_location(location_id):
         return jsonify(location.to_dict()), 200
     except Exception as e:
         return jsonify({"msg": "Something went wrong, Please try again."}), 500
+
+@bp.route('/<int:location_id>', methods=['DELETE'])
+@admin_required()
+def delete_location(location_id):
+    try:
+        location = Location.query.get(location_id)
+        if not location:
+            return jsonify({"msg": "Location not found"}), 404
+        db.session.delete(location)
+        db.session.commit()
+        return jsonify({"msg": "Location deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"msg": "Something went wrong, Please try again."}), 500

@@ -2,9 +2,8 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from ezpark.extensions import db, socketio
 from ezpark.models import Slot, Location
-from .auth import admin_required # Import admin_required decorator
+from .auth import admin_required 
 from ezpark.extensions import db
-from ezpark.services.slot_notifier import notify_slot_status_update # Add this import
 
 bp = Blueprint('slots', __name__, url_prefix='/slots')
 
