@@ -61,3 +61,36 @@ def delete_location(location_id):
         return jsonify({"msg": "Location deleted successfully"}), 200
     except Exception as e:
         return jsonify({"msg": "Something went wrong, Please try again."}), 500
+    
+@bp.route('/<int:location_id>', methods=['PUT'])
+@admin_required()
+def update_location(location_id):
+    try:
+        location = Location.query.get(location_id)
+        if not location:
+            return jsonify({"msg": "Location not found"}), 404
+
+        data = request.get_json()
+        name = data.get('name')
+        address = data.get('address')
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+
+        if name:
+            existing = Location.query.filter_by(name=name).first()
+            if existing and existing.id != location.id:
+                return jsonify({"msg": "Location with this name already exists"}), 409
+            location.name = name
+
+        if address:
+            location.address = address
+        if latitude is not None:
+            location.latitude = latitude
+        if longitude is not None:
+            location.longitude = longitude
+
+        db.session.commit()
+        return jsonify({"msg": "Location updated successfully", "location": location.to_dict()}), 200
+
+    except Exception as e:
+        return jsonify({"msg": "Something went wrong, Please try again."}), 500
