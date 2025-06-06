@@ -48,6 +48,7 @@ class Location(db.Model):
             'latitude': self.latitude,
             'longitude': self.longitude,
             'total_slots': len(self.slots),
+            'slots': [slot.to_dict() for slot in self.slots],
             'address': self.address
         }
 
@@ -81,6 +82,7 @@ class Reservation(db.Model):
         return {
             'id': self.id,
             'slot_id': self.slot_id,
+            'location_name': self.slot.location.name,
             'slot_name': self.slot.name,
             'user_id': self.user_id,
             'user_email': self.user.email,
