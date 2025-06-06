@@ -31,15 +31,13 @@ def add_slot():
 
 @bp.route('/', methods=['GET'])
 @jwt_required()
-def get_all_slots():
-    location_id = request.args.get('location_id', type=int)
-    slots_query = Slot.query
-
-    if location_id:
-        slots_query = slots_query.filter_by(location_id=location_id)
-
-    slots = slots_query.all()
-    return jsonify([slot.to_dict() for slot in slots]), 200
+def get_all_slots(): 
+    try:
+        slots = Slot.query.all()  
+        return jsonify([slot.to_dict() for slot in slots]), 200
+    except Exception as e:
+        return jsonify({"msg": "Something went wrong, Please try again."}), 500
+     
 
 @bp.route('/<int:slot_id>', methods=['GET'])
 @jwt_required()
@@ -48,6 +46,44 @@ def get_slot(slot_id):
     if not slot:
         return jsonify({"msg": "Slot not found"}), 404
     return jsonify(slot.to_dict()), 200
+
+@bp.route('/<int:slot_id>', methods=['DELETE'])
+@admin_required()
+def delete_slot(slot_id):
+    try:
+        slot = Slot.query.get(slot_id)
+        if not slot:
+            return jsonify({"msg": "Slot not found"}), 404
+        db.session.delete(slot)
+        db.session.commit()
+        return jsonify({"msg": "Slot deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"msg": "Something went wrong, Please try again."}), 500
+
+@bp.route('/<int:slot_id>', methods=['PUT'])
+@admin_required()
+def update_slot(slot_id):
+    try:
+        slot = Slot.query.get(slot_id)
+        if not slot:
+            return jsonify({"msg": "Slot not found"}), 404
+
+        data = request.get_json()
+        name = data.get('name')
+        location_id = data.get('location_id') 
+        is_available = data.get('is_available') 
+
+        if name:
+            existing = Slot.query.filter_by(name=name).first()
+            if existing and existing.id != slot.id:
+                return jsonify({"msg": "Slot with this name already exists"}), 409
+            slot.name = name
+  
+        db.session.commit()
+        return jsonify({"msg": "Slot updated successfully", "slot": slot.to_dict()}), 200
+
+    except Exception as e:
+        return jsonify({"msg": "Something went wrong, Please try again."}), 500
 
 @bp.route('/<int:slot_id>/availability', methods=['PUT'])
 @admin_required()
