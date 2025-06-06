@@ -12,7 +12,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(512), nullable=False)
     role = db.Column(db.String(20), default='user', nullable=False)
 
-    reservations = db.relationship('Reservation', backref='user', lazy=True)
+    reservations = db.relationship('Reservation', backref='user', lazy=True, cascade="all, delete-orphan")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -37,7 +37,7 @@ class Location(db.Model):
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
 
-    slots = db.relationship('Slot', backref='location', lazy=True)
+    slots = db.relationship('Slot', backref='location', lazy=True, cascade="all, delete-orphan")
 
     def to_dict(self):
         return {
@@ -52,11 +52,11 @@ class Location(db.Model):
 class Slot(db.Model):
     __tablename__ = 'slots'
     id = db.Column(db.Integer, primary_key=True)
-    location_id = db.Column(db.Integer, db.ForeignKey('locations.id'), nullable=False)
+    location_id = db.Column(db.Integer, db.ForeignKey('locations.id', ondelete='CASCADE'), nullable=False)
     name = db.Column(db.String(128), nullable=False)
     is_available = db.Column(db.Boolean, default=True, nullable=False)
 
-    reservations = db.relationship('Reservation', backref='slot', lazy=True)
+    reservations = db.relationship('Reservation', backref='slot', lazy=True, cascade="all, delete-orphan")
 
     def to_dict(self):
         return {
@@ -69,8 +69,8 @@ class Slot(db.Model):
 class Reservation(db.Model):
     __tablename__ = 'reservations'
     id = db.Column(db.Integer, primary_key=True)
-    slot_id = db.Column(db.Integer, db.ForeignKey('slots.id'), nullable=False)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    slot_id = db.Column(db.Integer, db.ForeignKey('slots.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     start_time = db.Column(db.DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc), nullable=False)
     end_time = db.Column(db.DateTime, nullable=True)
     status = db.Column(db.String(20), default='active', nullable=False)
