@@ -1,8 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from ezpark.extensions import db, socketio
-from ezpark.models import Reservation, Slot, User
-from flask_cors import cross_origin
+from ezpark.models import Reservation, Slot, User 
 import datetime
 
 bp = Blueprint('reservations', __name__, url_prefix='/reservations')
@@ -107,8 +106,7 @@ def cancel_reservation(reservation_id):
     except Exception as e:
         return jsonify({"msg": "Something went wrong, Please try again."}), 500
 
-@bp.route('/complete/<int:reservation_id>', methods=['PUT']) 
-@cross_origin(methods=['PUT'])
+@bp.route('/complete/<int:reservation_id>', methods=['POST'])
 @jwt_required()
 def complete_reservation(reservation_id):
     try:
