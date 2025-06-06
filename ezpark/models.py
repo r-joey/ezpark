@@ -7,8 +7,9 @@ class User(db.Model):
     __tablename__ = 'users'  
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = db.Column(db.String(128), unique=True, nullable=False)
-    first_name = db.Column(db.String(128), nullable=True)  # renamed and made nullable
-    last_name = db.Column(db.String(128), nullable=True)   # new field
+    first_name = db.Column(db.String(128), nullable=True)
+    last_name = db.Column(db.String(128), nullable=True)
+    status = db.Column(db.String(20), default='active', nullable=False)
     password_hash = db.Column(db.String(512), nullable=False)
     role = db.Column(db.String(20), default='user', nullable=False)
 
