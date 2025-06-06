@@ -106,10 +106,18 @@ def cancel_reservation(reservation_id):
     except Exception as e:
         return jsonify({"msg": "Something went wrong, Please try again."}), 500
 
-@bp.route('/complete/<int:reservation_id>', methods=['POST'])
+from flask import request
+
+@bp.route('/complete_reservation', methods=['POST'])
 @jwt_required()
-def complete_reservation(reservation_id):
+def complete_reservation():
     try:
+        data = request.get_json()
+        reservation_id = data.get('reservation_id')
+
+        if not reservation_id:
+            return jsonify({"msg": "Missing reservation_id in request body"}), 400
+
         current_user_id = get_jwt_identity()
         current_user = User.query.get(current_user_id)
 
@@ -130,8 +138,12 @@ def complete_reservation(reservation_id):
                 db.session.commit()
                 socketio.emit('slot_status_update', slot.to_dict())
 
-            return jsonify({"msg": "Reservation completed successfully", "reservation": reservation.to_dict()}), 200
+            return jsonify({
+                "msg": "Reservation completed successfully",
+                "reservation": reservation.to_dict()
+            }), 200
         else:
             return jsonify({"msg": "Unauthorized to complete this reservation"}), 403
+
     except Exception as e:
         return jsonify({"msg": "Something went wrong, Please try again."}), 500
