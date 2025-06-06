@@ -122,20 +122,25 @@ def get_users():
     except Exception as e:
         return jsonify({"msg": "Something went wrong, Please try again."}), 500
 
-@bp.route('/users/<user_id>', methods=['GET'])
-@jwt_required()
-def get_user(user_id):
+@bp.route('/users/<user_id>', methods=['DELETE'])
+@admin_required()
+def deactivate_user(user_id):
     try:
-        current_user_id = get_jwt_identity()
-        current_user = User.query.get(current_user_id)
-
+        # Only admins can access this route (admin_required)
         user = User.query.get(user_id)
+
         if not user:
             return jsonify({"msg": "User not found"}), 404
 
-        if current_user.role == 'admin' or current_user.id == user_id:
-            return jsonify(user.to_dict()), 200
-        else:
-            return jsonify({"msg": "Unauthorized access to user profile"}), 403
+        if user.role == 'admin':
+            return jsonify({"msg": "Cannot deactivate an admin user"}), 403
+
+        if user.status == 'inactive':
+            return jsonify({"msg": "User is already deactivated"}), 400
+
+        user.status = 'inactive'
+        db.session.commit()
+
+        return jsonify({"msg": "User deactivated successfully", "user": user.to_dict()}), 200
     except Exception as e:
-        return jsonify({"msg": "Something went wrong, Please try again."}), 500
+        return jsonify({"msg": f"Something went wrong: {e}"}), 500
