@@ -107,7 +107,7 @@ def cancel_reservation(reservation_id):
     except Exception as e:
         return jsonify({"msg": "Something went wrong, Please try again."}), 500
 
-@bp.route('/<int:reservation_id>/complete', methods=['PUT'])
+@bp.route('/complete/<int:reservation_id>', methods=['PUT'])
 @jwt_required()
 def complete_reservation(reservation_id):
     try:
