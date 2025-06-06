@@ -78,7 +78,10 @@ def update_slot(slot_id):
             if existing and existing.id != slot.id:
                 return jsonify({"msg": "Slot with this name already exists"}), 409
             slot.name = name
-  
+        slot.location_id = location_id
+        if is_available is not None:
+            slot.is_available = is_available
+
         db.session.commit()
         return jsonify({"msg": "Slot updated successfully", "slot": slot.to_dict()}), 200
 
