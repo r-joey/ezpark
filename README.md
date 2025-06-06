@@ -7,15 +7,14 @@ This is the backend for the EZPark parking reservation application. It provides 
 Before you begin, ensure you have the following installed:
 
 *   Python (3.x recommended)
-*   pip (Python package installer)
-*   A PostgreSQL database (or you can modify the `SQLALCHEMY_DATABASE_URI` for a different database)
+*   pip (Python package installer) 
 
 ## Project Setup
 
 1.  **Clone the repository (if applicable):**
     ```bash
-    git clone <your-repository-url>
-    cd Ingenuity_trial_parking_reservation_app/backend
+    git clone https://github.com/r-joey/ezpark.git
+    cd ezpark
     ```
 
 2.  **Create and activate a virtual environment:**
@@ -35,14 +34,13 @@ Before you begin, ensure you have the following installed:
     ```
 
 4.  **Set up environment variables:**
-    Create a `.env` file in the `backend` directory (e.g., `d:\PROJECTS\Ingenuity_trial_parking_reservation_app\backend\.env`). Add the following environment variables. **Note:** The `.env` file is listed in your `.gitignore`, so it won't be committed to your repository, which is good practice for sensitive data.
+    Create a `.env` file in the `backend` directory. Add the following environment variables.  
 
     ```env
     FLASK_ENV=development
-    DATABASE_URL_DEV=postgresql://user:password@host:port/database_name_dev  # Replace with your actual development database URL
-    DATABASE_URL=postgresql://user:password@host:port/database_name_prod    # Replace with your actual production database URL (if different)
+    DATABASE_URL_DEV='sqlite:///ezpark.db'  
     JWT_SECRET_KEY=your_strong_jwt_secret_key_here # Replace with a strong, random secret key
-    PORT=5000 # Optional, defaults to 5000 if not set
+    PORT=5000  
     ```
     Refer to <mcfile name="config.py" path="d:\PROJECTS\Ingenuity_trial_parking_reservation_app\backend\ezpark\config.py"></mcfile> for how these are used.
 
