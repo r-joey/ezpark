@@ -1,7 +1,9 @@
+import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from ezpark.extensions import db, jwt # You still need jwt for jwt_required decorator
-from ezpark.models import User
+from sqlalchemy import func
+from ezpark.extensions import db
+from ezpark.models import User, Location, Reservation, Slot
 import functools
 
 bp = Blueprint('auth', __name__, url_prefix='/')
@@ -156,3 +158,100 @@ def get_current_user():
         return jsonify(user.to_dict()), 200
     except Exception as e:
         return jsonify({"msg": f"Something went wrong: {e}"}), 500
+  
+@bp.route('/dashboard-analytics', methods=['GET'])
+@admin_required()
+def get_dashboard_analytics():
+    # User counts
+    total_users = User.query.count()
+    active_users = User.query.filter_by(status='active').count()
+    user_roles_count = dict(db.session.query(User.role, func.count(User.id)).group_by(User.role).all())
+
+    # Location counts
+    total_locations = Location.query.count()
+    locations_with_slot_counts = db.session.query(
+        Location.name, func.count(Slot.id)
+    ).join(Slot).group_by(Location.id).order_by(func.count(Slot.id).desc()).all()
+    locations_slots = [{'location': loc, 'slot_count': count} for loc, count in locations_with_slot_counts]
+
+    # Slots
+    total_slots = Slot.query.count()
+    available_slots = Slot.query.filter_by(is_available=True).count()
+
+    # Reservations
+    total_reservations = Reservation.query.count()
+    active_reservations = Reservation.query.filter_by(status='active').count()
+    reservations_by_status = dict(db.session.query(
+        Reservation.status, func.count(Reservation.id)
+    ).group_by(Reservation.status).all())
+
+    # Average reservation duration (days) for completed reservations
+    avg_duration_days = db.session.query(
+        func.avg(func.julianday(Reservation.end_time) - func.julianday(Reservation.start_time))
+    ).filter(Reservation.status=='completed', Reservation.end_time.isnot(None)).scalar()
+    avg_duration_days = float(avg_duration_days) if avg_duration_days else 0
+
+    # Reservations trend last 7 days
+    seven_days_ago = datetime.utcnow() - datetime.timedelta(days=7)
+    reservations_trend_raw = db.session.query(
+        func.date(Reservation.start_time),
+        func.count(Reservation.id)
+    ).filter(Reservation.start_time >= seven_days_ago).group_by(func.date(Reservation.start_time)).all()
+    # Format trend as {date: count}
+    reservations_trend = {str(date): count for date, count in reservations_trend_raw}
+
+    # Most reserved slot
+    most_reserved_slot = db.session.query(
+        Reservation.slot_id,
+        func.count(Reservation.id).label('count')
+    ).group_by(Reservation.slot_id).order_by(func.count(Reservation.id).desc()).first()
+    most_reserved_slot_data = None
+    if most_reserved_slot:
+        slot = Slot.query.get(most_reserved_slot.slot_id)
+        most_reserved_slot_data = {
+            'slot_id': most_reserved_slot.slot_id,
+            'slot_name': slot.name if slot else None,
+            'location_name': slot.location.name if slot else None,
+            'reservation_count': most_reserved_slot.count
+        }
+
+    # Top user by number of reservations
+    top_user = db.session.query(
+        Reservation.user_id,
+        func.count(Reservation.id).label('count')
+    ).group_by(Reservation.user_id).order_by(func.count(Reservation.id).desc()).first()
+    top_user_data = None
+    if top_user:
+        user = User.query.get(top_user.user_id)
+        top_user_data = {
+            'user_id': top_user.user_id,
+            'user_email': user.email if user else None,
+            'reservation_count': top_user.count
+        }
+
+    response = {
+        'users': {
+            'total': total_users,
+            'active': active_users,
+            'roles_distribution': user_roles_count
+        },
+        'locations': {
+            'total': total_locations,
+            'slots_per_location': locations_slots
+        },
+        'slots': {
+            'total': total_slots,
+            'available': available_slots
+        },
+        'reservations': {
+            'total': total_reservations,
+            'active': active_reservations,
+            'by_status': reservations_by_status,
+            'average_duration_days': avg_duration_days,
+            'trend_last_7_days': reservations_trend,
+            'most_reserved_slot': most_reserved_slot_data,
+            'top_user': top_user_data
+        }
+    }
+
+    return jsonify(response)
